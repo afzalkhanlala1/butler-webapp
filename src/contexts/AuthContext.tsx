@@ -27,15 +27,15 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false); // Changed to false for now
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Temporarily disable auth state checking until Firebase is configured
-    // const unsubscribe = onAuthStateChange((user) => {
-    //   setCurrentUser(user);
-    //   setLoading(false);
-    // });
-    // return unsubscribe;
+    const unsubscribe = onAuthStateChange((user) => {
+      setCurrentUser(user);
+      setLoading(false);
+    });
+
+    return unsubscribe;
   }, []);
 
   const value: AuthContextType = {

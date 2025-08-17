@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, reauthenticateWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, User, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // Your Firebase configuration
@@ -15,30 +15,24 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-let app;
-try {
-  app = initializeApp(firebaseConfig);
-} catch (error) {
-  // If Firebase config is not set up yet, create a mock app
-  console.warn("Firebase not configured yet. Using mock configuration.");
-  app = initializeApp({
-    apiKey: "mock",
-    authDomain: "mock",
-    projectId: "mock",
-    storageBucket: "mock",
-    messagingSenderId: "mock",
-    appId: "mock"
-  });
-}
+const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
+// Persist sessions in local storage so the user stays logged in
+setPersistence(auth, browserLocalPersistence).catch(() => {
+  /* ignore persistence errors (e.g., private mode) */
+});
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
 
 // Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();
+// Request Gmail/Calendar scopes for agent actions (read/send email, manage events)
+googleProvider.addScope('https://www.googleapis.com/auth/gmail.readonly');
+googleProvider.addScope('https://www.googleapis.com/auth/gmail.send');
+googleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
 
 // Authentication functions
 export const signInWithGoogle = async () => {
@@ -98,3 +92,46 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
 };
 
 export default app;
+
+// Returns a Google OAuth access token for the current user with the requested scopes.
+// If additional scopes are needed, a consent popup will be shown.
+export const getGoogleAccessToken = async (requiredScopes: string[] = []): Promise<string> => {
+  // Simple in-memory cache to avoid repeated consent popups within a session
+  const DEFAULT_SCOPES = [
+    'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/gmail.send',
+    'https://www.googleapis.com/auth/calendar.events',
+  ];
+  const TOKEN_TTL_MS = 45 * 60 * 1000; // conservative 45 minutes
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const g: any = (globalThis as any);
+  g.__butlerTokenCache = g.__butlerTokenCache || { token: null as string | null, ts: 0, scopes: new Set<string>() };
+  const cache = g.__butlerTokenCache as { token: string | null; ts: number; scopes: Set<string> };
+  const needed = new Set<string>([...DEFAULT_SCOPES, ...requiredScopes]);
+  const now = Date.now();
+  const cacheFresh = cache.token && (now - cache.ts) < TOKEN_TTL_MS;
+  const scopesCovered = cacheFresh && Array.from(needed).every((s) => cache.scopes.has(s));
+  if (cacheFresh && scopesCovered) {
+    return cache.token as string;
+  }
+
+  const provider = new GoogleAuthProvider();
+  // Include core scopes we rely on + any additional ones requested
+  const scopes = needed;
+  scopes.forEach((s) => provider.addScope(s));
+
+  // If already signed in, prefer incremental auth without forcing re-consent
+  const result = auth.currentUser
+    ? await reauthenticateWithPopup(auth.currentUser, provider)
+    : await signInWithPopup(auth, provider);
+
+  const cred = GoogleAuthProvider.credentialFromResult(result);
+  const token = (cred as any)?.accessToken as string | undefined;
+  if (!token) {
+    throw new Error('Failed to obtain Google access token. Please allow popups and try again.');
+  }
+  cache.token = token;
+  cache.ts = now;
+  cache.scopes = scopes;
+  return cache.token;
+};

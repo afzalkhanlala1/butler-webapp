@@ -20,10 +20,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // Temporarily allow access without authentication for testing
-  // if (!currentUser) {
-  //   return <Navigate to="/login" replace />;
-  // }
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
 
   return <>{children}</>;
 };

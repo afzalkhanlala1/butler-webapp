@@ -8,6 +8,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      "/adk": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/adk/, ""),
+      },
+    },
   },
   plugins: [
     react(),
