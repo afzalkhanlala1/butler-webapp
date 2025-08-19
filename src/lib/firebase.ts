@@ -33,11 +33,37 @@ export const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('https://www.googleapis.com/auth/gmail.readonly');
 googleProvider.addScope('https://www.googleapis.com/auth/gmail.send');
 googleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
+// Ask for consent during initial Google sign-in and allow incremental auth to be merged
+googleProvider.setCustomParameters({
+  prompt: 'consent',
+  include_granted_scopes: 'true',
+});
+
+googleProvider.setCustomParameters({
+  prompt: 'consent',
+  include_granted_scopes: 'true'
+});
 
 // Authentication functions
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
+    // Cache the Google access token so the app can call Gmail/Calendar immediately post-login
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cred: any = GoogleAuthProvider.credentialFromResult(result);
+    const token = cred?.accessToken as string | undefined;
+    if (token) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const g: any = (globalThis as any);
+      g.__butlerTokenCache = g.__butlerTokenCache || { token: null as string | null, ts: 0, scopes: new Set<string>() };
+      g.__butlerTokenCache.token = token;
+      g.__butlerTokenCache.ts = Date.now();
+      g.__butlerTokenCache.scopes = new Set<string>([
+        'https://www.googleapis.com/auth/gmail.readonly',
+        'https://www.googleapis.com/auth/gmail.send',
+        'https://www.googleapis.com/auth/calendar.events',
+      ]);
+    }
     return result.user;
   } catch (error) {
     // If Firebase is not configured, show a helpful message
@@ -119,6 +145,8 @@ export const getGoogleAccessToken = async (requiredScopes: string[] = []): Promi
   // Include core scopes we rely on + any additional ones requested
   const scopes = needed;
   scopes.forEach((s) => provider.addScope(s));
+  // Merge newly requested scopes with those already granted without forcing a consent screen unnecessarily
+  provider.setCustomParameters({ include_granted_scopes: 'true' });
 
   // If already signed in, prefer incremental auth without forcing re-consent
   const result = auth.currentUser
