@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search as SearchIcon, Filter, Zap, Globe } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Search = () => {
   useEffect(() => {
@@ -76,13 +75,6 @@ const Search = () => {
                   </div>
                 </CardContent>
               </Card>
-            </section>
-
-            <section className="mt-12">
-              <DevTestPanel
-                context="Search"
-                placeholder="e.g., Find documents mentioning 'budget Q4' updated last week"
-              />
             </section>
           </main>
         </div>

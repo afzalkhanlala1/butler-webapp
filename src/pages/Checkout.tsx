@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { CreditCard, Shield } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Checkout = () => {
   useEffect(() => {
@@ -115,14 +114,7 @@ const Checkout = () => {
           </div>
         </div>
       </div>
-      <div className="mx-auto max-w-4xl px-4 pb-10">
-        <div className="mt-8">
-          <DevTestPanel
-            context="Checkout"
-            placeholder="e.g., Simulate applying a 20% discount code"
-          />
-        </div>
-      </div>
+      
     </div>
   );
 };

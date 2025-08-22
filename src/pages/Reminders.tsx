@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bell, Clock, Repeat, Smartphone } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Reminders = () => {
   useEffect(() => {
@@ -72,13 +71,6 @@ const Reminders = () => {
                   </div>
                 </CardContent>
               </Card>
-            </section>
-
-            <section className="mt-12">
-              <DevTestPanel
-                context="Reminders"
-                placeholder="e.g., Remind me to send the report every Friday at 4pm"
-              />
             </section>
           </main>
         </div>

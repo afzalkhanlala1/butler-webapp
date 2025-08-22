@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileEdit, Lightbulb, Send, Target } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const ProactiveDrafts = () => {
   useEffect(() => {
@@ -76,13 +75,6 @@ const ProactiveDrafts = () => {
                   </div>
                 </CardContent>
               </Card>
-            </section>
-
-            <section className="mt-12">
-              <DevTestPanel
-                context="Proactive Drafts"
-                placeholder="e.g., Prepare a draft follow-up for yesterday's meeting with action items"
-              />
             </section>
           </main>
         </div>

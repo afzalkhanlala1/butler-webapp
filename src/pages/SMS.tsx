@@ -3,7 +3,6 @@ import SidebarNav from "@/components/layout/SidebarNav";
 import DocCard from "@/components/common/DocCard";
 import { MessageSquare, Settings, Send } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const SMS = () => {
   useEffect(() => {
@@ -62,13 +61,6 @@ const SMS = () => {
                   </p>
                 </div>
               </div>
-            </section>
-
-            <section className="mt-12">
-              <DevTestPanel
-                context="SMS"
-                placeholder="e.g., Text 'Add pay utilities to my to-do list for Friday'"
-              />
             </section>
           </main>
         </div>

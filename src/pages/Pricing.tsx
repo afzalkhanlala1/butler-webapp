@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 import { Link } from "react-router-dom";
 
 const Pricing = () => {
@@ -131,12 +130,7 @@ const Pricing = () => {
               </Card>
             </section>
 
-            <section className="mt-12">
-              <DevTestPanel
-                context="Pricing"
-                placeholder="e.g., Ask for a custom enterprise quote with SSO and SLA"
-              />
-            </section>
+            
           </main>
         </div>
       </div>

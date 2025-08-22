@@ -4,7 +4,6 @@ import DocCard from "@/components/common/DocCard";
 import { Button } from "@/components/ui/button";
 import { Mail, Calendar, MessageSquare, Slack, Bell, ListTodo, NotebookPen } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Index = () => {
   useEffect(() => {
@@ -65,12 +64,7 @@ const Index = () => {
               </div>
             </section>
 
-            <section className="mt-12">
-              <DevTestPanel
-                context="Docs Home"
-                placeholder="e.g., What should I try next?"
-              />
-            </section>
+            
           </main>
         </div>
       </div>

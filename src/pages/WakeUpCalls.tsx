@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Phone, AlarmClock, Calendar, Sun } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const WakeUpCalls = () => {
   useEffect(() => {
@@ -76,13 +75,6 @@ const WakeUpCalls = () => {
                   </div>
                 </CardContent>
               </Card>
-            </section>
-
-            <section className="mt-12">
-              <DevTestPanel
-                context="Wake Up Calls"
-                placeholder="e.g., Set a wake-up call for 6:30am on weekdays"
-              />
             </section>
           </main>
         </div>

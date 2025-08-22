@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Inbox as InboxIcon, Filter, Star, Archive } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Inbox = () => {
   useEffect(() => {
@@ -74,12 +73,7 @@ const Inbox = () => {
               </Card>
             </section>
 
-            <section className="mt-12">
-              <DevTestPanel
-                context="Inbox"
-                placeholder="e.g., Archive all newsletters older than 30 days"
-              />
-            </section>
+            
           </main>
         </div>
       </div>

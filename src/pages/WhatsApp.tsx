@@ -3,7 +3,6 @@ import SidebarNav from "@/components/layout/SidebarNav";
 import DocCard from "@/components/common/DocCard";
 import { MessageCircle, Settings, Smartphone } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const WhatsApp = () => {
   useEffect(() => {
@@ -56,13 +55,6 @@ const WhatsApp = () => {
                   </p>
                 </div>
               </div>
-            </section>
-
-            <section className="mt-12">
-              <DevTestPanel
-                context="WhatsApp"
-                placeholder="e.g., Send location to Butler and ask to book nearest coffee shop"
-              />
             </section>
           </main>
         </div>

@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Phone, MessageSquare, Users, Clock } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const TextingCalling = () => {
   useEffect(() => {
@@ -75,13 +74,6 @@ const TextingCalling = () => {
                   </Button>
                 </CardContent>
               </Card>
-            </section>
-
-            <section className="mt-12">
-              <DevTestPanel
-                context="Texting & Calling"
-                placeholder="e.g., Schedule a call with Lisa next Wednesday at 11am"
-              />
             </section>
           </main>
         </div>

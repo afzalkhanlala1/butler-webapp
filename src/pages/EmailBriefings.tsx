@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Clock, TrendingUp, FileText } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const EmailBriefings = () => {
   useEffect(() => {
@@ -78,12 +77,7 @@ const EmailBriefings = () => {
               </Card>
             </section>
 
-            <section className="mt-12">
-              <DevTestPanel
-                context="Email Briefings"
-                placeholder="e.g., Send me a 7am daily briefing of urgent emails only"
-              />
-            </section>
+            
           </main>
         </div>
       </div>

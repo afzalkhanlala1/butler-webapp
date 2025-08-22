@@ -3,7 +3,6 @@ import SidebarNav from "@/components/layout/SidebarNav";
 import DocCard from "@/components/common/DocCard";
 import { Wand2, Zap, Keyboard, Settings } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Shortcuts = () => {
   useEffect(() => {
@@ -93,13 +92,6 @@ const Shortcuts = () => {
                   description="Customize shortcuts based on your specific needs and preferences."
                 />
               </div>
-            </section>
-
-            <section className="mt-12">
-              <DevTestPanel
-                context="Shortcuts"
-                placeholder="e.g., Create a shortcut to schedule 30-min 1:1 with my reports"
-              />
             </section>
           </main>
         </div>

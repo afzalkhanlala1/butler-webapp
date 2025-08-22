@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Filter, Star, Archive, Trash2 } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const EmailTriage = () => {
   useEffect(() => {
@@ -78,12 +77,7 @@ const EmailTriage = () => {
               </Card>
             </section>
 
-            <section className="mt-12">
-              <DevTestPanel
-                context="Email Triage"
-                placeholder="e.g., Move low-priority emails to 'Later' and flag VIPs"
-              />
-            </section>
+            
           </main>
         </div>
       </div>

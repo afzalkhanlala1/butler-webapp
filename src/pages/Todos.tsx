@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ListTodo, CheckSquare, Calendar, Target } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Todos = () => {
   useEffect(() => {
@@ -76,13 +75,6 @@ const Todos = () => {
                   </div>
                 </CardContent>
               </Card>
-            </section>
-
-            <section className="mt-12">
-              <DevTestPanel
-                context="To-dos"
-                placeholder="e.g., Add 'buy flowers' due tomorrow with priority high"
-              />
             </section>
           </main>
         </div>

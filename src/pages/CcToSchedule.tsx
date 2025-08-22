@@ -3,7 +3,6 @@ import SidebarNav from "@/components/layout/SidebarNav";
 import DocCard from "@/components/common/DocCard";
 import { Mail, Calendar, Users, Zap } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const CcToSchedule = () => {
   useEffect(() => {
@@ -85,12 +84,7 @@ const CcToSchedule = () => {
               </div>
             </section>
 
-            <section className="mt-12">
-              <DevTestPanel
-                context="Cc to Schedule"
-                placeholder="e.g., CC Butler to schedule a sync with the design team next week"
-              />
-            </section>
+            
           </main>
         </div>
       </div>

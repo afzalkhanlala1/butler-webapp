@@ -29,10 +29,12 @@ export const db = getFirestore(app);
 
 // Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();
-// Request Gmail/Calendar scopes for agent actions (read/send email, manage events)
+// Request Gmail/Calendar/Drive/Tasks scopes for agent actions
 googleProvider.addScope('https://www.googleapis.com/auth/gmail.readonly');
 googleProvider.addScope('https://www.googleapis.com/auth/gmail.send');
 googleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
+googleProvider.addScope('https://www.googleapis.com/auth/drive.metadata.readonly');
+googleProvider.addScope('https://www.googleapis.com/auth/tasks');
 // Ask for consent during initial Google sign-in and allow incremental auth to be merged
 googleProvider.setCustomParameters({
   prompt: 'consent',
@@ -62,6 +64,8 @@ export const signInWithGoogle = async () => {
         'https://www.googleapis.com/auth/gmail.readonly',
         'https://www.googleapis.com/auth/gmail.send',
         'https://www.googleapis.com/auth/calendar.events',
+        'https://www.googleapis.com/auth/drive.metadata.readonly',
+        'https://www.googleapis.com/auth/tasks',
       ]);
     }
     return result.user;
@@ -127,6 +131,8 @@ export const getGoogleAccessToken = async (requiredScopes: string[] = []): Promi
     'https://www.googleapis.com/auth/gmail.readonly',
     'https://www.googleapis.com/auth/gmail.send',
     'https://www.googleapis.com/auth/calendar.events',
+    'https://www.googleapis.com/auth/drive.metadata.readonly',
+    'https://www.googleapis.com/auth/tasks',
   ];
   const TOKEN_TTL_MS = 45 * 60 * 1000; // conservative 45 minutes
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

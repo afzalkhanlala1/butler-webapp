@@ -1,6 +1,5 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const NotFound = () => {
   const location = useLocation();
@@ -21,9 +20,7 @@ const NotFound = () => {
           Return to Home
         </a>
       </div>
-      <div className="w-full max-w-xl">
-        <DevTestPanel context="404" placeholder="e.g., Suggest where this route should redirect" />
-      </div>
+      
     </div>
   );
 };

@@ -3,7 +3,6 @@ import SidebarNav from "@/components/layout/SidebarNav";
 import DocCard from "@/components/common/DocCard";
 import { Calendar as CalendarIcon, Clock, Users, Settings } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Calendar = () => {
   useEffect(() => {
@@ -83,13 +82,6 @@ const Calendar = () => {
                   </p>
                 </div>
               </div>
-            </section>
-
-            <section className="mt-12">
-              <DevTestPanel
-                context="Calendar"
-                placeholder="e.g., Create a 30-min meeting with Sarah next Tue at 2pm"
-              />
             </section>
           </main>
         </div>

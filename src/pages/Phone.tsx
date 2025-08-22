@@ -3,7 +3,6 @@ import SidebarNav from "@/components/layout/SidebarNav";
 import DocCard from "@/components/common/DocCard";
 import { Phone as PhoneIcon, MessageSquare, Settings } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Phone = () => {
   useEffect(() => {
@@ -63,13 +62,6 @@ const Phone = () => {
                   </p>
                 </div>
               </div>
-            </section>
-
-            <section className="mt-12">
-              <DevTestPanel
-                context="Phone Calls"
-                placeholder="e.g., Call Alex and ask about the Q3 report"
-              />
             </section>
           </main>
         </div>

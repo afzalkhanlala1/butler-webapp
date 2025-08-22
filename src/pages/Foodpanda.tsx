@@ -3,7 +3,6 @@ import SidebarNav from "@/components/layout/SidebarNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Utensils, Clock, MapPin, ShoppingBag } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Foodpanda = () => {
   useEffect(() => {
@@ -72,12 +71,7 @@ const Foodpanda = () => {
               </Card>
             </section>
 
-            <section className="mt-12">
-              <DevTestPanel
-                context="Foodpanda"
-                placeholder="e.g., Order a pepperoni pizza from the nearest restaurant for 7:30pm"
-              />
-            </section>
+            
           </main>
         </div>
       </div>

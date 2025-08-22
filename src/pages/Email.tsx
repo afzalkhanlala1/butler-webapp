@@ -3,7 +3,6 @@ import SidebarNav from "@/components/layout/SidebarNav";
 import DocCard from "@/components/common/DocCard";
 import { Mail, Forward, Settings } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Email = () => {
   useEffect(() => {
@@ -62,13 +61,6 @@ const Email = () => {
                   </p>
                 </div>
               </div>
-            </section>
-
-            <section className="mt-12">
-              <DevTestPanel
-                context="Email"
-                placeholder="e.g., Draft a reply to Sarah saying I'll review by Friday"
-              />
             </section>
           </main>
         </div>

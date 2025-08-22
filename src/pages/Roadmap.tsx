@@ -7,7 +7,6 @@ import { CheckCircle2, Circle, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import FeedbackForm from "@/components/feedback/FeedbackForm";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Roadmap = () => {
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
@@ -100,12 +99,7 @@ const Roadmap = () => {
               </Card>
             </section>
 
-            <section className="mt-12">
-              <DevTestPanel
-                context="Roadmap"
-                placeholder="e.g., Propose a new feature and priority"
-              />
-            </section>
+            
           </main>
         </div>
       </div>

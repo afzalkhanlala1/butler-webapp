@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Zap, Users, Shield } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Slack = () => {
   useEffect(() => {
@@ -75,13 +74,6 @@ const Slack = () => {
                   </Button>
                 </CardContent>
               </Card>
-            </section>
-
-            <section className="mt-12">
-              <DevTestPanel
-                context="Slack"
-                placeholder="e.g., Post a daily standup summary to #team channel at 9am"
-              />
             </section>
           </main>
         </div>

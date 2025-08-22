@@ -3,7 +3,6 @@ import SidebarNav from "@/components/layout/SidebarNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Car, Clock, MapPin, Route } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Careem = () => {
   useEffect(() => {
@@ -76,12 +75,7 @@ const Careem = () => {
               </Card>
             </section>
 
-            <section className="mt-12">
-              <DevTestPanel
-                context="Careem"
-                placeholder="e.g., Book a ride from my current location to Downtown Mall in 20 minutes"
-              />
-            </section>
+            
           </main>
         </div>
       </div>

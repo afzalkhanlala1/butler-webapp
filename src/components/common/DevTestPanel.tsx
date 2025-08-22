@@ -165,6 +165,8 @@ const DevTestPanel = ({ context, placeholder }: DevTestPanelProps) => {
       "https://www.googleapis.com/auth/gmail.readonly",
     ];
     if (action === "CREATE_EVENT" || action === "DELETE_EVENT" || action === "LIST_EVENTS") scopes = ["https://www.googleapis.com/auth/calendar.events"]; 
+    if (action === "LIST_DRIVE_FILES") scopes = ["https://www.googleapis.com/auth/drive.metadata.readonly"]; 
+    if (action === "CREATE_TASK" || action === "LIST_TASKS" || action === "COMPLETE_TASK" || action === "DELETE_TASK") scopes = ["https://www.googleapis.com/auth/tasks"]; 
 
     if (scopes.length === 0) {
       // Unknown action; just return the original text
@@ -178,6 +180,42 @@ const DevTestPanel = ({ context, placeholder }: DevTestPanelProps) => {
         const filter = (actionObj.filter as EmailReadFilter) || "most_recent";
         const msgs = await gmailRead(token, filter);
         const result = { ok: true, action, filter, messages: msgs };
+        return await sendActionResultToAgent(sid, result);
+      }
+      if (action === "LIST_DRIVE_FILES") {
+        const { pageSize } = actionObj;
+        const files = await (await import("@/lib/googleActions")).listDriveFiles(token, typeof pageSize === 'number' ? pageSize : 10);
+        const result = { ok: true, action, count: files.length, files };
+        return await sendActionResultToAgent(sid, result);
+      }
+      if (action === "LIST_TASKS") {
+        const { showCompleted, maxResults } = actionObj;
+        const tasks = await (await import("@/lib/googleActions")).listTasks(token, {
+          showCompleted: typeof showCompleted === 'boolean' ? showCompleted : undefined,
+          maxResults: typeof maxResults === 'number' ? maxResults : 10,
+        });
+        const result = { ok: true, action, count: tasks.length, tasks };
+        return await sendActionResultToAgent(sid, result);
+      }
+      if (action === "CREATE_TASK") {
+        const { title, due, notes } = actionObj;
+        if (!title) throw new Error("Missing title for CREATE_TASK");
+        const created = await (await import("@/lib/googleActions")).createTask(token, String(title), due ? String(due) : undefined, notes ? String(notes) : undefined);
+        const result = { ok: true, action, taskId: created.id };
+        return await sendActionResultToAgent(sid, result);
+      }
+      if (action === "COMPLETE_TASK") {
+        const { taskId } = actionObj;
+        if (!taskId) throw new Error("Missing taskId for COMPLETE_TASK");
+        const updated = await (await import("@/lib/googleActions")).completeTask(token, String(taskId));
+        const result = { ok: true, action, taskId: updated.id };
+        return await sendActionResultToAgent(sid, result);
+      }
+      if (action === "DELETE_TASK") {
+        const { taskId } = actionObj;
+        if (!taskId) throw new Error("Missing taskId for DELETE_TASK");
+        await (await import("@/lib/googleActions")).deleteTask(token, String(taskId));
+        const result = { ok: true, action, taskId };
         return await sendActionResultToAgent(sid, result);
       }
       if (action === "SEND_EMAIL") {

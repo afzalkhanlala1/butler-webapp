@@ -34,6 +34,7 @@ import EmailTriage from "./pages/EmailTriage";
 import WakeUpCalls from "./pages/WakeUpCalls";
 import Foodpanda from "./pages/Foodpanda";
 import Careem from "./pages/Careem";
+import DeveloperTesting from "./pages/DeveloperTesting";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,11 @@ const App = () => (
             <Route path="/roadmap" element={
               <ProtectedRoute>
                 <Roadmap />
+              </ProtectedRoute>
+            } />
+            <Route path="/developer-testing" element={
+              <ProtectedRoute>
+                <DeveloperTesting />
               </ProtectedRoute>
             } />
             {/* communication routes removed */}

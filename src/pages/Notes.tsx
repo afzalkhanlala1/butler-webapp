@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NotebookPen, Search, Tag, Share } from "lucide-react";
 import { useEffect } from "react";
-import DevTestPanel from "@/components/common/DevTestPanel";
 
 const Notes = () => {
   useEffect(() => {
@@ -78,12 +77,7 @@ const Notes = () => {
               </Card>
             </section>
 
-            <section className="mt-12">
-              <DevTestPanel
-                context="Notes"
-                placeholder="e.g., Create a note titled 'Client ideas' with bullet points"
-              />
-            </section>
+            
           </main>
         </div>
       </div>

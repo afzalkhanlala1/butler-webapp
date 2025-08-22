@@ -48,6 +48,7 @@ const TopNav = () => {
 
         <nav className="flex items-center gap-4">
           <Link to="/roadmap" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Roadmap</Link>
+          <Link to="/developer-testing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Developer Testing</Link>
           <ThemeToggle />
           
           {currentUser ? (
