@@ -6,7 +6,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar as CalendarIcon, Inbox as InboxIcon, RefreshCw, Folder, CheckSquare, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { getGoogleAccessToken } from "@/lib/firebase";
-import { readEmails, readEmailBody, type GmailMessageSummary, listCalendarEvents, listDriveFiles, type DriveFileSummary, listTasks, type TaskItemSummary } from "@/lib/googleActions";
+import { readEmails, readEmailBody, replyEmail, type GmailMessageSummary, listCalendarEvents, listDriveFiles, type DriveFileSummary, listTasks, type TaskItemSummary } from "@/lib/googleActions";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const DeveloperTesting = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -19,9 +21,71 @@ const DeveloperTesting = () => {
   const [driveError, setDriveError] = useState<string | null>(null);
   const [tasksError, setTasksError] = useState<string | null>(null);
   const [agentOpen, setAgentOpen] = useState(true);
+  const [rankingIds, setRankingIds] = useState<string[] | null>(null);
+  const [rankingError, setRankingError] = useState<string | null>(null);
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
   const [selectedEmailBody, setSelectedEmailBody] = useState<string>("");
   const [emailBodyLoading, setEmailBodyLoading] = useState(false);
+  const [replyForEmailId, setReplyForEmailId] = useState<string | null>(null);
+  const [replyDraft, setReplyDraft] = useState<string>("");
+  const [isGeneratingReply, setIsGeneratingReply] = useState(false);
+  const [isSendingReply, setIsSendingReply] = useState(false);
+  const [replyError, setReplyError] = useState<string | null>(null);
+
+  const { currentUser } = useAuth();
+  const { toast } = useToast();
+
+  // Agent (ADK) helpers reused from DevTestPanel
+  const base = (import.meta.env.VITE_ADK_BASE as string) || "/adk";
+  const adkAgent = (import.meta.env.VITE_ADK_AGENT as string) || "email_agent";
+  const userId = (currentUser?.uid as string) || (import.meta.env.VITE_ADK_USER_ID as string) || "butler-dev";
+  const invokePathEnv = (import.meta.env.VITE_ADK_INVOKE_PATH as string) || "/run";
+  const adkUrl = `${base}${invokePathEnv.replace(":agent", adkAgent)}`;
+  const [adkSessionId, setAdkSessionId] = useState<string | null>(null);
+
+  function parseAdkText(data: any): string {
+    if (!data) return "";
+    if (Array.isArray(data)) {
+      for (let i = data.length - 1; i >= 0; i -= 1) {
+        const evt = data[i];
+        if (evt?.author && evt?.author !== "user") {
+          const parts = evt?.content?.parts;
+          if (Array.isArray(parts)) {
+            const textPart = parts.find((p: any) => typeof p?.text === "string" && p.text.trim().length > 0);
+            if (textPart?.text) return textPart.text as string;
+          }
+        }
+      }
+      return "";
+    }
+    if (typeof data === "string") return data;
+    if (data.output?.text) return data.output.text;
+    if (data.output?.content?.text) return data.output.content.text;
+    if (data.message?.content?.text) return data.message.content.text;
+    if (Array.isArray(data.messages)) {
+      const last = data.messages[data.messages.length - 1];
+      if (last?.content?.text) return last.content.text;
+      if (typeof last === "string") return last;
+    }
+    if (data.text) return data.text;
+    return "";
+  }
+
+  async function ensureAdkSession(): Promise<string> {
+    if (adkSessionId) return adkSessionId;
+    const res = await fetch(`${base}/apps/${adkAgent}/users/${userId}/sessions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({})
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`Failed to create agent session: ${res.status} ${t}`);
+    }
+    const data = await res.json();
+    setAdkSessionId(data.id as string);
+    return data.id as string;
+  }
 
   useEffect(() => {
     document.title = "Butler Docs • Developer Testing";
@@ -49,7 +113,40 @@ const DeveloperTesting = () => {
         listTasks(token, { showCompleted: false, maxResults: 10 }),
       ]);
       const [emailsRes, eventsRes, filesRes, tasksRes] = results;
-      if (emailsRes.status === "fulfilled") setEmails(emailsRes.value || []);
+      if (emailsRes.status === "fulfilled") {
+        const list = emailsRes.value || [];
+        setEmails(list);
+        // Ask the agent to rank the last 20 by importance; expect a JSON array of messageIds
+        try {
+          const sid = await ensureAdkSession();
+          const payload = {
+            app_name: adkAgent,
+            user_id: userId,
+            session_id: sid,
+            new_message: {
+              role: "user",
+              parts: [
+                { text: "Rank these Gmail message IDs by importance from highest to lowest and return ONLY a JSON array of ids." },
+                { text: JSON.stringify(list.slice(0, 20).map((m: any) => ({ id: m.id, from: m.from, subject: m.subject, date: m.date, snippet: m.snippet }))) }
+              ]
+            },
+            streaming: false
+          };
+          const res = await fetch(adkUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+          if (res.ok) {
+            const data = await res.json();
+            const text = parseAdkText(data);
+            try {
+              const arr = JSON.parse(text);
+              if (Array.isArray(arr)) setRankingIds(arr.filter((x: any) => typeof x === 'string'));
+            } catch {
+              // ignore parse error
+            }
+          }
+        } catch (e: any) {
+          setRankingError(e?.message || String(e));
+        }
+      }
       else setGmailError(emailsRes.reason?.message || String(emailsRes.reason));
       if (eventsRes.status === "fulfilled") setEvents(Array.isArray(eventsRes.value) ? eventsRes.value : []);
       else setCalendarError(eventsRes.reason?.message || String(eventsRes.reason));
@@ -82,23 +179,14 @@ const DeveloperTesting = () => {
   }
 
   const importantEmails = useMemo(() => {
-    // Simple heuristic: prefer UNREAD, STARRED, IMPORTANT labels when present, then by date desc
-    const score = (m: GmailMessageSummary): number => {
-      const labels = new Set(m.labelIds || []);
-      let s = 0;
-      if (labels.has('UNREAD')) s += 3;
-      if (labels.has('STARRED')) s += 2;
-      if (labels.has('IMPORTANT')) s += 2;
-      if (m.subject && /urgent|asap|important|action required/i.test(m.subject)) s += 1;
-      if (m.from && /ceo|founder|client|vip/i.test(m.from)) s += 1;
-      return s;
-    };
-    const sorted = [...emails]
-      .sort((a, b) => (new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()))
-      .slice(0, 20)
-      .sort((a, b) => score(b) - score(a));
-    return sorted.slice(0, 5);
-  }, [emails]);
+    const pool = [...emails].sort((a, b) => (new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())).slice(0, 20);
+    if (rankingIds && rankingIds.length > 0) {
+      const byId = new Map(pool.map(e => [e.id, e] as const));
+      const ranked = rankingIds.map(id => byId.get(id)).filter(Boolean) as GmailMessageSummary[];
+      return ranked.slice(0, 5);
+    }
+    return pool.slice(0, 5);
+  }, [emails, rankingIds]);
 
   async function openEmail(id: string) {
     setSelectedEmailId(id);
@@ -143,7 +231,7 @@ const DeveloperTesting = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="max-h-[420px] pr-4">
+                    <ScrollArea className="max-h-[480px] pr-4">
                       {gmailError && (
                         <p className="text-sm text-red-500">{gmailError}</p>
                       )}
@@ -152,7 +240,7 @@ const DeveloperTesting = () => {
                       )}
                       <div className="space-y-3">
                         {importantEmails.map((m) => (
-                          <button key={m.id} onClick={() => openEmail(m.id)} className="w-full text-left rounded border p-3 hover:bg-muted/50">
+                          <div key={m.id} className="rounded border p-3">
                             <div className="flex items-center justify-between">
                               <p className="text-sm font-medium truncate max-w-[70%]">{m.subject || "(no subject)"}</p>
                               <span className="text-xs text-muted-foreground ml-2">{m.date ? new Date(m.date).toLocaleDateString() : ""}</span>
@@ -161,7 +249,55 @@ const DeveloperTesting = () => {
                             {m.snippet && (
                               <p className="text-sm mt-2 line-clamp-2">{m.snippet}</p>
                             )}
-                          </button>
+                            <div className="mt-2 flex items-center gap-2">
+                              <Button size="sm" variant="outline" onClick={() => openEmail(m.id)}>View</Button>
+                              <Button size="sm" onClick={async () => {
+                                setReplyError(null);
+                                setIsGeneratingReply(true);
+                                setReplyForEmailId(m.id);
+                                setReplyDraft("");
+                                try {
+                                  const sid = await ensureAdkSession();
+                                  const payload = {
+                                    app_name: adkAgent,
+                                    user_id: userId,
+                                    session_id: sid,
+                                    new_message: {
+                                      role: "user",
+                                      parts: [
+                                        { text: "Draft a short, professional reply to this email. Return only the reply body text." },
+                                        { text: `Subject: ${m.subject || ''}` },
+                                        { text: `From: ${m.from || ''}` },
+                                        { text: selectedEmailBody || '' }
+                                      ]
+                                    },
+                                    streaming: false
+                                  };
+                                  // Ensure we have the email body for better drafts
+                                  if (!selectedEmailId || selectedEmailId !== m.id) {
+                                    try {
+                                      const token = await getGoogleAccessToken(["https://www.googleapis.com/auth/gmail.readonly"]);
+                                      const body = await readEmailBody(token, m.id);
+                                      payload.new_message.parts[payload.new_message.parts.length - 1] = { text: body };
+                                    } catch {}
+                                  }
+                                  const res = await fetch(adkUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                                  if (res.ok) {
+                                    const data = await res.json();
+                                    const text = parseAdkText(data);
+                                    setReplyDraft(text || "");
+                                  } else {
+                                    const t = await res.text();
+                                    setReplyError(t);
+                                  }
+                                } catch (e: any) {
+                                  setReplyError(e?.message || String(e));
+                                } finally {
+                                  setIsGeneratingReply(false);
+                                }
+                              }}>Reply</Button>
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </ScrollArea>
@@ -175,7 +311,7 @@ const DeveloperTesting = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="max-h-[420px] pr-4">
+                    <ScrollArea className="max-h-[480px] pr-4">
                       {driveError && (
                         <div className="text-sm text-red-500 space-y-2">
                           <p>{driveError}</p>
@@ -187,11 +323,26 @@ const DeveloperTesting = () => {
                             <p className="text-sm text-muted-foreground">No recent files.</p>
                           )}
                           {files.map((f) => (
-                            <div key={f.id} className="rounded border p-3">
-                              <p className="text-sm font-medium truncate">{f.name}</p>
-                              <p className="text-xs text-muted-foreground mt-1">{f.mimeType || ''}</p>
-                              <p className="text-xs text-muted-foreground">{f.modifiedTime ? new Date(f.modifiedTime).toLocaleString() : ''}</p>
-                            </div>
+                            <details key={f.id} className="rounded border p-3 group">
+                              <summary className="list-none cursor-pointer">
+                                <p className="text-sm font-medium truncate group-open:whitespace-normal group-open:truncate-none">
+                                  {f.name}
+                                </p>
+                              </summary>
+                              <div className="mt-2 space-y-1">
+                                {f.thumbnailLink && (
+                                  <img src={f.thumbnailLink} alt="Preview" className="max-h-40 rounded border" />
+                                )}
+                                <p className="text-xs text-muted-foreground">{f.mimeType || ''}</p>
+                                <p className="text-xs text-muted-foreground">{f.modifiedTime ? new Date(f.modifiedTime).toLocaleString() : ''}</p>
+                                {f.webViewLink && (
+                                  <a className="text-xs underline" href={f.webViewLink} target="_blank" rel="noreferrer">Open in Drive</a>
+                                )}
+                                {f.size && (
+                                  <p className="text-xs text-muted-foreground">Size: {f.size} bytes</p>
+                                )}
+                              </div>
+                            </details>
                           ))}
                         </div>
                       )}
@@ -209,7 +360,7 @@ const DeveloperTesting = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="max-h-[420px] pr-4">
+                    <ScrollArea className="max-h-[480px] pr-4">
                       {calendarError && (
                         <p className="text-sm text-red-500">{calendarError}</p>
                       )}
@@ -247,7 +398,7 @@ const DeveloperTesting = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="max-h-[420px] pr-4">
+                    <ScrollArea className="max-h-[480px] pr-4">
                       {tasksError && (
                         <div className="text-sm text-red-500 space-y-2">
                           <p>{tasksError}</p>
@@ -309,6 +460,47 @@ const DeveloperTesting = () => {
                         <pre className="whitespace-pre-wrap text-sm">{selectedEmailBody}</pre>
                       </ScrollArea>
                     )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Reply composer */}
+            {replyForEmailId && (
+              <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center" role="dialog" aria-modal="true" onClick={() => setReplyForEmailId(null)}>
+                <div className="bg-background rounded-md shadow-xl w-[90vw] max-w-2xl max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-between border-b px-4 py-2">
+                    <p className="text-sm font-medium">Reply Draft</p>
+                    <Button variant="ghost" size="sm" onClick={() => setReplyForEmailId(null)}>Close</Button>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    {isGeneratingReply ? (
+                      <p className="text-sm text-muted-foreground">Generating reply…</p>
+                    ) : (
+                      <textarea className="w-full h-56 border rounded p-2 text-sm" value={replyDraft} onChange={(e) => setReplyDraft(e.target.value)} />
+                    )}
+                    {replyError && <p className="text-sm text-red-500">{replyError}</p>}
+                    <div className="flex gap-2 justify-end">
+                      <Button variant="outline" onClick={() => setReplyForEmailId(null)}>Cancel</Button>
+                      <Button disabled={isSendingReply || !replyDraft.trim()} onClick={async () => {
+                        setIsSendingReply(true);
+                        try {
+                          const token = await getGoogleAccessToken([
+                            "https://www.googleapis.com/auth/gmail.send",
+                            "https://www.googleapis.com/auth/gmail.readonly",
+                          ]);
+                          await replyEmail(token, replyForEmailId as string, undefined, replyDraft);
+                          setReplyForEmailId(null);
+                          setReplyDraft("");
+                          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                          (toast && toast({ title: "Reply sent" }));
+                        } catch (e: any) {
+                          setReplyError(e?.message || String(e));
+                        } finally {
+                          setIsSendingReply(false);
+                        }
+                      }}>Send</Button>
+                    </div>
                   </div>
                 </div>
               </div>

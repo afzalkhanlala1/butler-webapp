@@ -200,13 +200,17 @@ export interface DriveFileSummary {
   mimeType?: string;
   modifiedTime?: string;
   owners?: Array<{ displayName?: string }>;
+  webViewLink?: string;
+  iconLink?: string;
+  thumbnailLink?: string;
+  size?: string;
 }
 
 export async function listDriveFiles(token: string, pageSize: number = 10): Promise<DriveFileSummary[]> {
   const params = new URLSearchParams();
   params.set('pageSize', String(pageSize));
   params.set('orderBy', 'modifiedTime desc');
-  params.set('fields', 'files(id,name,mimeType,modifiedTime,owners(displayName))');
+  params.set('fields', 'files(id,name,mimeType,modifiedTime,owners(displayName),webViewLink,iconLink,thumbnailLink,size)');
   const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
     headers: authHeaders(token),
   });
